@@ -23,7 +23,6 @@ class Process {
     int id;
     int arrive_time;
     int burst_time;
-    // int end_time;
     int remaining_time;
     Process(int _id, int _arr, int _bur)
       : id(_id), arrive_time(_arr), burst_time(_bur), remaining_time(burst_time) {};
@@ -31,33 +30,23 @@ class Process {
 
 void round_robin(vector<Process*> &processes, int time_quantum) {
   int current_time = 0;
+  int time_in_quantum = 0;
   queue<Process*> ready_processes;
 
   if (!processes.empty()) ready_processes.push(processes[0]);
+  printf("#%d process arrives at %d\n", processes[0]->id, current_time);
   processes.erase(processes.begin());
 
   while(!processes.empty() || !ready_processes.empty()) {
 
-    if (!ready_processes.empty()) {
-      auto current_process = ready_processes.front();
-      ready_processes.pop();
+    auto current_process = ready_processes.front();
+    ready_processes.pop();
 
-      if (current_process->remaining_time - time_quantum > 0) {
-        current_time += time_quantum;
-        current_process->remaining_time -= time_quantum;
-        // FIXME: push after news come in
-      } else {
-        // finished
-        current_time += current_process->remaining_time;
-        current_process->remaining_time = 0;
-        // current_process->end_time = current_time;
-        printf("#%c process is end at %d\n", current_process->id + 'A', current_time);
-        delete(current_process);
-        current_process = nullptr;
-      }
+    while (time_in_quantum < time_quantum) {
 
-      for(auto it = processes.begin(); it != processes.end() && (*it)->remaining_time > 0;) {
+      for(auto it = processes.begin(); it != processes.end();) {
         if ((*it)->arrive_time <= current_time) {
+          printf("#%d process arrives at %d\n", (*it)->id, current_time);
           ready_processes.push(*it);
           it = processes.erase(it);
         } else {
@@ -65,25 +54,31 @@ void round_robin(vector<Process*> &processes, int time_quantum) {
         }
       }
 
-      if (current_process != nullptr) ready_processes.push(current_process);
-
-    } else {
       current_time++;
+      time_in_quantum++;
+
+      if (--current_process->remaining_time == 0) {
+        time_in_quantum = 0;
+        printf("#%d process ends at %d\n", current_process->id, current_time);
+        delete(current_process);
+        current_process = nullptr;
+        break;
+      }
+
     }
+    if (current_process != nullptr) ready_processes.push(current_process);
+
+    time_in_quantum = 0;
   }
 }
 
 void TestRoundRobin() {
   const int time_quantum = 4;
-  const int process_count = 11;
+  const int process_count = 15;
   vector<Process*> processes;
 
-  // int arrive_time[] = {0, 1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 18, 19, 21, 22, 23, 24, 25, 27, 28, 30};
-  // int burst_time[] = {4, 7, 5, 3, 6, 2, 9, 1, 8, 5, 3, 6, 7, 2, 4, 6, 3, 5, 2, 8, 4, 9, 7, 5};
-
-  //                   A  B  C  D   E   F   G  H    I   J  K
-  int arrive_time[] = {0, 3, 5, 7, 10, 14, 15, 18, 20, 24, 25 };
-  int burst_time[] = {4, 7, 5, 3, 6, 2, 9, 1, 8, 5, 3 };
+  int arrive_time[] = {0, 3, 5, 7, 10, 14, 15, 18, 20, 24, 25, 27, 30, 32, 33 };
+  int burst_time[] = {4, 7, 5, 3, 6, 2, 9, 1, 8, 5, 3, 7, 3, 5, 4 };
 
   for (int i = 0; i < process_count; i++) {
     processes.push_back(new Process(i, arrive_time[i], burst_time[i]));
