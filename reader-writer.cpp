@@ -32,14 +32,16 @@ std::counting_semaphore reader_smph(8);
 
 std::mutex reader_count_mutex; int reader_count = 0;
 
+std::mutex accessing_count_mutex; int accessing_count = 0;
+
 int number = 0;
 
 void thread_write() {
   do {
     rw_mutex.acquire();
     {
-      printf("[writer] writer is writing %d\n", number);
       number++;
+      printf("[writer] writer is writing %d\n", number);
     }
     rw_mutex.release();
 
@@ -58,17 +60,31 @@ void thread_read(int id) {
       if (readers_count == 0) {
         rw_mutex.acquire();
       }
-      readers_count++;
+      reader_count++;
     }
     reader_count_mutex.unlock();
 
     reader_smph.acquire();
-    printf("[reader] %d is reading %d\n", id, number);
+
+    accessing_count_mutex.lock();
+    {
+      accessing_count++;
+    }
+    accessing_count_mutex.unlock();
+     
+    printf("[reader %d/%d] %d is reading %d\n", accessing_count, most_readers, id, number);
+
+    accessing_count_mutex.lock();
+    {
+      accessing_count--;
+    }
+    accessing_count_mutex.unlock();
+
     reader_smph.release();
 
     reader_count_mutex.lock();
     {
-      readers_count--;
+      reader_count--;
       if (readers_count == 0) {
         rw_mutex.release();
       }
