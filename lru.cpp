@@ -81,10 +81,6 @@ int lru(vector<int> seq, int memory_size) {
 
     seq_it++;
 
-    for (list<int>::iterator it = pages.begin(); it != pages.end(); it++)
-      printf("%d ", *it);
-    printf("\n");
-
   }
   return page_fault_count;
 }

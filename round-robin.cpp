@@ -28,7 +28,7 @@ class Process {
       : id(_id), arrive_time(_arr), burst_time(_bur), remaining_time(burst_time) {};
 };
 
-void round_robin(vector<Process*> &processes, int time_quantum) {
+int round_robin(vector<Process*> &processes, int time_quantum) {
   int current_time = 0;
   int time_in_quantum = 0;
   queue<Process*> ready_processes;
@@ -70,6 +70,8 @@ void round_robin(vector<Process*> &processes, int time_quantum) {
 
     time_in_quantum = 0;
   }
+
+  return current_time;
 }
 
 void TestRoundRobin() {
@@ -84,7 +86,8 @@ void TestRoundRobin() {
     processes.push_back(new Process(i, arrive_time[i], burst_time[i]));
   }
 
-  round_robin(processes, time_quantum);
+  int total_time = round_robin(processes, time_quantum);
+  printf("average execution time: %.3f", 1.0 * total_time / process_count);
 
 }
 
