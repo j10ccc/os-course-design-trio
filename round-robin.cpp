@@ -31,6 +31,7 @@ class Process {
 int round_robin(vector<Process*> &processes, int time_quantum) {
   int current_time = 0;
   int time_in_quantum = 0;
+  int total_time = 0;
   queue<Process*> ready_processes;
 
   if (!processes.empty()) ready_processes.push(processes[0]);
@@ -59,6 +60,7 @@ int round_robin(vector<Process*> &processes, int time_quantum) {
 
       if (--current_process->remaining_time == 0) {
         time_in_quantum = 0;
+        total_time += current_time - current_process->arrive_time;
         printf("#%d process ends at %d\n", current_process->id, current_time);
         delete(current_process);
         current_process = nullptr;
@@ -71,7 +73,7 @@ int round_robin(vector<Process*> &processes, int time_quantum) {
     time_in_quantum = 0;
   }
 
-  return current_time;
+  return total_time;
 }
 
 void TestRoundRobin() {
